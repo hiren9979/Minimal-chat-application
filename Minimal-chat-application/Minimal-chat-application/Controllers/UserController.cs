@@ -89,6 +89,7 @@ namespace Minimal_chat_application.Controllers
 
             if (result.Succeeded)
             {
+
                 var token = GenerateJwtToken(user);
                 var profile = new
                 {
@@ -125,71 +126,25 @@ namespace Minimal_chat_application.Controllers
             return Ok(new { users });
         }
 
-        [HttpPost("SendMessages")]
-        [Authorize]
-        
-        public async Task<IActionResult> SendMessage([FromBody] SendMessageModel sendMessageModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { error = "Validation failed", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-            }
-
-            var senderId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrWhiteSpace(senderId))
-            {
-                return Unauthorized(new { error = "Unauthorized access" });
-            }
-
-            // Check if the receiver exists
-            var receiver = await _userManager.FindByIdAsync(sendMessageModel.ReceiverId);
-            if (receiver == null)
-            {
-                return BadRequest(new { error = "Receiver user not found" });
-            }
-
-            var message = new Message
-            {
-                SenderId = senderId,
-                ReceiverId = sendMessageModel.ReceiverId,
-                Content = sendMessageModel.Content,
-                Timestamp = DateTime.UtcNow
-            };
-
-            _context.Messages.Add(message);
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                messageId = message.Id,
-                senderId = message.SenderId,
-                receiverId = message.ReceiverId,
-                content = message.Content,
-                timestamp = message.Timestamp
-            });
-        }
-
         //Generate jwt token
         private string GenerateJwtToken(IdentityUser user)
         {
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-            };
+            var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["Jwt:ExpireDays"]));
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
             var token = new JwtSecurityToken(
-                _configuration["Jwt:Issuer"],
-                _configuration["Jwt:Issuer"],
-                claims,
-                expires: expires,
-                signingCredentials: creds
-            );
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                expires: DateTime.Now.AddHours(3),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+                );
+
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

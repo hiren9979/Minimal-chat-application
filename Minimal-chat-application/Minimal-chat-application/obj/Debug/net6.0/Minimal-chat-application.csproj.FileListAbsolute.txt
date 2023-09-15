@@ -90,3 +90,4 @@ C:\Users\admin\source\repos\Hiren\Internship\Minimal-chat-application\Minimal-ch
 C:\Users\admin\source\repos\Hiren\Internship\Minimal-chat-application\Minimal-chat-application\Minimal-chat-application\obj\Debug\net6.0\Minimal-chat-application.pdb
 C:\Users\admin\source\repos\Hiren\Internship\Minimal-chat-application\Minimal-chat-application\Minimal-chat-application\obj\Debug\net6.0\Minimal-chat-application.genruntimeconfig.cache
 C:\Users\admin\source\repos\Hiren\Internship\Minimal-chat-application\Minimal-chat-application\Minimal-chat-application\obj\Debug\net6.0\ref\Minimal-chat-application.dll
+C:\Users\admin\source\repos\Hiren\Internship\Minimal-chat-application\Minimal-chat-application\Minimal-chat-application\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
