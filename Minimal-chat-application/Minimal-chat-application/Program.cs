@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Minimal_chat_application.Context;
+using Minimal_chat_application.Model;
 
 namespace Minimal_chat_application
 {
@@ -19,7 +20,7 @@ namespace Minimal_chat_application
             builder.Services.AddSwaggerGen();
 
             //Register service for creating in database
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+            builder.Services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
