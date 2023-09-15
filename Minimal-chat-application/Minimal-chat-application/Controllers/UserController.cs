@@ -8,6 +8,7 @@ using Minimal_chat_application.Model;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 
 
@@ -18,13 +19,13 @@ namespace Minimal_chat_application.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         
 
-        public UserController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ApplicationDbContext context,
+        public UserController(UserManager<User> userManager, SignInManager<User> signInManager, ApplicationDbContext context,
             IConfiguration configuration)
         {
             _userManager = userManager;
@@ -42,14 +43,15 @@ namespace Minimal_chat_application.Controllers
                 return BadRequest(new { error = "Validation failed", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
             }
 
-            var user = new IdentityUser
+            var user = new User
             {
                 Email = userRegisterModel.Email,
-                UserName = userRegisterModel.Name,
+                UserName = userRegisterModel.FirstName,
+                FirstName = userRegisterModel.FirstName,
+                LastName = userRegisterModel.LastName
             };
 
             var result = await _userManager.CreateAsync(user, userRegisterModel.Password);
-
 
             if (result.Succeeded)
             {
@@ -57,7 +59,8 @@ namespace Minimal_chat_application.Controllers
                 return Ok(new
                 {
                     userId = user.Id,
-                    name = userRegisterModel.Name,
+                    firstName = user.FirstName, 
+                    lastName = user.LastName,
                     email = user.Email
                 });
 
@@ -79,7 +82,7 @@ namespace Minimal_chat_application.Controllers
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                return Unauthorized(new { error = "Invalid credentials" });
+                return Unauthorized(new { error = "User not found" });
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: false);
@@ -99,6 +102,71 @@ namespace Minimal_chat_application.Controllers
             {
                 return Unauthorized(new { error = "Invalid credentials" });
             }
+        }
+
+        [HttpGet("GetUsers")]
+        [Authorize]
+        public IActionResult GetUsers()
+        {
+            var users = _context.Users
+                .Select(u => new User
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName + " " + u.LastName,
+                    Email = u.Email
+                })
+                .ToList();
+
+            if (users.Count == 0)
+            {
+                return NotFound(new { error = "No users found" });
+            }
+
+            return Ok(new { users });
+        }
+
+        [HttpPost("SendMessages")]
+        [Authorize]
+        
+        public async Task<IActionResult> SendMessage([FromBody] SendMessageModel sendMessageModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { error = "Validation failed", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+            }
+
+            var senderId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(senderId))
+            {
+                return Unauthorized(new { error = "Unauthorized access" });
+            }
+
+            // Check if the receiver exists
+            var receiver = await _userManager.FindByIdAsync(sendMessageModel.ReceiverId);
+            if (receiver == null)
+            {
+                return BadRequest(new { error = "Receiver user not found" });
+            }
+
+            var message = new Message
+            {
+                SenderId = senderId,
+                ReceiverId = sendMessageModel.ReceiverId,
+                Content = sendMessageModel.Content,
+                Timestamp = DateTime.UtcNow
+            };
+
+            _context.Messages.Add(message);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                messageId = message.Id,
+                senderId = message.SenderId,
+                receiverId = message.ReceiverId,
+                content = message.Content,
+                timestamp = message.Timestamp
+            });
         }
 
         //Generate jwt token
