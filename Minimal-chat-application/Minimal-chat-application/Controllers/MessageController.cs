@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Minimal_chat_application.Context;
 using Minimal_chat_application.Model;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -143,15 +145,21 @@ namespace Minimal_chat_application.Controllers
         }
 
         //Fetch conversation history
-        [HttpPost("ConversationHistory")]
+        [HttpGet("ConversationHistory")]
         public async Task<IActionResult> GetConversationHistory(
-         [FromBody] FetchConverstionModel fetchConverstionModel)
+        /* [FromBody] FetchConverstionModel fetchConverstionModel*/
+        [FromQuery] string receiverId,
+        [FromQuery] string? sort,
+        [FromQuery] DateTime? time,
+        [FromQuery] int? count
+
+        )
         {
             // Get the current user's ID from the token
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             // Check if the specified user exists
-            var chattingUser = await _userManager.FindByIdAsync(fetchConverstionModel.receiverId);
+            var chattingUser = await _userManager.FindByIdAsync(receiverId);
             if (chattingUser == null)
             {
                 return NotFound(new { error = "Receiver user not found" });
@@ -164,8 +172,6 @@ namespace Minimal_chat_application.Controllers
                             )
                 .AsQueryable();
 
-            string sort = fetchConverstionModel.sort;
-
             // Apply sorting based on timestamp
             if (sort=="desc")
             {
@@ -175,8 +181,6 @@ namespace Minimal_chat_application.Controllers
             {
                 query = query.OrderBy(m => m.Timestamp);
             }
-
-            DateTime? time = fetchConverstionModel.time; // Get the 'before' timestamp from the model
 
             // Apply filtering based on the 'before' timestamp
             if (time.HasValue)
@@ -188,8 +192,7 @@ namespace Minimal_chat_application.Controllers
                 query = query.Where(m => m.Timestamp < DateTime.UtcNow);
             }
 
-            int? count = fetchConverstionModel.count;
-            if (!count.HasValue)
+            if (!count.HasValue || count>20)
             {
                 count = 20;
             }

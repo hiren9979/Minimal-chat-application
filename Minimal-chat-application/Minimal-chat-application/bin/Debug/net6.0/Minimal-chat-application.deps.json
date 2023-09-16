@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v6.0": {
       "Minimal-chat-application/1.0.0": {
         "dependencies": {
+          "Intersoft.Crosslight.Data": "6.0.5000.975",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "6.0.22",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "6.0.21",
           "Microsoft.EntityFrameworkCore.Design": "7.0.11",
@@ -58,6 +59,29 @@
           "lib/net6.0/Humanizer.dll": {
             "assemblyVersion": "2.14.0.0",
             "fileVersion": "2.14.1.48190"
+          }
+        }
+      },
+      "Intersoft.Crosslight/6.0.5000.975": {
+        "runtime": {
+          "lib/Intersoft.Crosslight.dll": {
+            "assemblyVersion": "6.0.5000.1",
+            "fileVersion": "6.0.5000.975"
+          }
+        }
+      },
+      "Intersoft.Crosslight.Data/6.0.5000.975": {
+        "dependencies": {
+          "Intersoft.Crosslight": "6.0.5000.975"
+        },
+        "runtime": {
+          "lib/Intersoft.Crosslight.Data.ComponentModel.dll": {
+            "assemblyVersion": "6.0.5000.1",
+            "fileVersion": "6.0.5000.975"
+          },
+          "lib/Intersoft.Crosslight.Data.dll": {
+            "assemblyVersion": "6.0.5000.1",
+            "fileVersion": "6.0.5000.975"
           }
         }
       },
@@ -784,6 +808,20 @@
       "sha512": "sha512-lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw==",
       "path": "humanizer.core/2.14.1",
       "hashPath": "humanizer.core.2.14.1.nupkg.sha512"
+    },
+    "Intersoft.Crosslight/6.0.5000.975": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-icRCEz9Fl9HI7LyiUniMnIN8TeI1vRI4QPZQyGDx3sTyX5YxDGNHE2uLXG3ShsI1EOSY4x/Vxycs/QTOL3uqnQ==",
+      "path": "intersoft.crosslight/6.0.5000.975",
+      "hashPath": "intersoft.crosslight.6.0.5000.975.nupkg.sha512"
+    },
+    "Intersoft.Crosslight.Data/6.0.5000.975": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-j5s38V6alLJwvLYeWPIOPeh+t1+4uxVQGGd/DR2GUf65WOQbnZxEN9RBlLPIJGRejh+cpUPteCDbZMH5Czcukg==",
+      "path": "intersoft.crosslight.data/6.0.5000.975",
+      "hashPath": "intersoft.crosslight.data.6.0.5000.975.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Authentication.JwtBearer/6.0.22": {
       "type": "package",
