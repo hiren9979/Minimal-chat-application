@@ -102,5 +102,45 @@ namespace Minimal_chat_application.Controllers
             });
         }
 
+        //Delete message
+        [HttpDelete("DeleteMessage/{messageId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteMessage(int messageId)
+        {
+            // Your code here to fetch and delete the message with the given messageId.
+
+            // Check if the message with the given messageId exists.
+            var message = await _context.Messages.FindAsync(messageId);
+
+            var loginUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (message.SenderId != loginUserId)
+            {
+                return Unauthorized(new { error = "Unauthorized access - Try to delete message send by you not others" });
+            }
+
+            if (message == null)
+            {
+                return NotFound(new { error = "Message not found" });
+            }
+
+            // Check if the user making the request is the sender of the message.
+            var senderId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (senderId != message.SenderId)
+            {
+                return Unauthorized(new { error = "Unauthorized access" });
+            }
+
+            // Remove the message from the database.
+            _context.Messages.Remove(message);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                messageDeleted = true
+            });
+        }
+
+
     }
 }
