@@ -67,6 +67,40 @@ namespace Minimal_chat_application.Controllers
             });
         }
 
+        //Edit message with messageId
+        [HttpPost("EditMessage/{messageId}")]
+        [Authorize]
+
+        public async Task<IActionResult> EditMessage(int messageId, [FromBody] EditMessageModel editMessageModel)
+        {
+
+            // Check if the message with the given messageId exists.
+            var message = await _context.Messages.FindAsync(messageId);
+            var loginUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (message.SenderId != loginUserId)
+            {
+                return Unauthorized(new { error = "Unauthorized access - Try to edit message send by you not others" });
+            }
+
+            if (message == null)
+            {
+                return NotFound(new { error = "Message not found" });
+            }
+
+            // Update the message content.
+            message.Content = editMessageModel.Content;
+
+            // Save the changes to the database.
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                messageId = message.Id,
+                content = message.Content,
+                timestamp = message.Timestamp
+            });
+        }
 
     }
 }
