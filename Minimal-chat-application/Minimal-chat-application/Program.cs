@@ -95,9 +95,9 @@ namespace Minimal_chat_application
 
             app.UseHttpsRedirection();
 
+            app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 
