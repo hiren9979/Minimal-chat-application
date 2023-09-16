@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Minimal_chat_application.Context;
 using Minimal_chat_application.Model;
 using System;
@@ -116,7 +117,7 @@ namespace Minimal_chat_application.Controllers
 
             if (message.SenderId != loginUserId)
             {
-                return Unauthorized(new { error = "Unauthorized access - Try to delete message send by you not others" });
+                    return Unauthorized(new { error = "Unauthorized access - Try to delete message send by you not others" });
             }
 
             if (message == null)
@@ -141,6 +142,78 @@ namespace Minimal_chat_application.Controllers
             });
         }
 
+        //Fetch conversation history
+        [HttpPost("ConversationHistory")]
+        public async Task<IActionResult> GetConversationHistory(
+         [FromBody] FetchConverstionModel fetchConverstionModel)
+        {
+            // Get the current user's ID from the token
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Check if the specified user exists
+            var chattingUser = await _userManager.FindByIdAsync(fetchConverstionModel.receiverId);
+            if (chattingUser == null)
+            {
+                return NotFound(new { error = "Receiver user not found" });
+            }
+
+            // Define the query for fetching messages
+            var query = _context.Messages
+                .Where(m => (m.SenderId == currentUserId && m.ReceiverId == chattingUser.Id) 
+                            || (m.SenderId == chattingUser.Id && m.ReceiverId == currentUserId)
+                            )
+                .AsQueryable();
+
+            string sort = fetchConverstionModel.sort;
+
+            // Apply sorting based on timestamp
+            if (sort=="desc")
+            {
+                query = query.OrderByDescending(m => m.Timestamp);
+            }
+            else
+            {
+                query = query.OrderBy(m => m.Timestamp);
+            }
+
+            DateTime? time = fetchConverstionModel.time; // Get the 'before' timestamp from the model
+
+            // Apply filtering based on the 'before' timestamp
+            if (time.HasValue)
+            {
+                query = query.Where(m => m.Timestamp < time);
+            }
+            else
+            {
+                query = query.Where(m => m.Timestamp < DateTime.UtcNow);
+            }
+
+            int? count = fetchConverstionModel.count;
+            if (!count.HasValue)
+            {
+                count = 20;
+            }
+           
+            // Retrieve the specified number of messages
+            var messages = await query
+                    .Take((int)count)
+                    .ToListAsync();
+
+            // Prepare the response
+            var response = new
+            {
+                messages = messages.Select(m => new
+                {
+                    id = m.Id,
+                    senderId = m.SenderId,
+                    receiverId = m.ReceiverId,
+                    content = m.Content,
+                    timestamp = m.Timestamp
+                })
+            };
+
+            return Ok(response);
+        }
 
     }
 }
