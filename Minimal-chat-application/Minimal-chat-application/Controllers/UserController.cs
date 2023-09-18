@@ -127,11 +127,12 @@
             }
 
             //Generate jwt token
-            private string GenerateJwtToken(IdentityUser user)
+            private string GenerateJwtToken(User user)
             {
                 var authClaims = new List<Claim>
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                        new Claim(ClaimTypes.Name, user.FirstName),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     };
 
