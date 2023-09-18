@@ -20,6 +20,7 @@ namespace Minimal_chat_application.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Your other configurations here
             base.OnModelCreating(modelBuilder);
         }
     }
