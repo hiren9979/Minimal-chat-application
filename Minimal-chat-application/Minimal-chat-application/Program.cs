@@ -82,10 +82,13 @@ namespace Minimal_chat_application
                 };
             });
 
-            
+            builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
+            {
+                build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+            }));
 
             var app = builder.Build();
-
+          
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -94,6 +97,8 @@ namespace Minimal_chat_application
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("corspolicy");
 
             app.UseAuthentication();
             app.UseAuthorization();

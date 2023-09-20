@@ -54,7 +54,7 @@ namespace Minimal_chat_application.Controllers
                 SenderId = senderId,
                 ReceiverId = sendMessageModel.ReceiverId,
                 Content = sendMessageModel.Content,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             };
 
             _context.Messages.Add(message);
@@ -185,11 +185,18 @@ namespace Minimal_chat_application.Controllers
             // Apply filtering based on the 'before' timestamp
             if (time.HasValue)
             {
-                query = query.Where(m => m.Timestamp < time);
+                TimeZoneInfo sourceTimeZone = TimeZoneInfo.Utc;
+
+                // Define the target time zone (Indian Standard Time)
+                TimeZoneInfo targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+
+                // Convert the time to IST
+                DateTime istTime = TimeZoneInfo.ConvertTimeFromUtc(time.Value, targetTimeZone);
+                query = query.Where(m => m.Timestamp < istTime);
             }
             else
             {
-                query = query.Where(m => m.Timestamp < DateTime.UtcNow);
+                query = query.Where(m => m.Timestamp < DateTime.Now);
             }
 
             if (!count.HasValue || count>20)
