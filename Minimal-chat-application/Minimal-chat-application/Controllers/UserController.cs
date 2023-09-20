@@ -71,7 +71,7 @@
                 }
             }
 
-            [HttpPost("login")]
+            [HttpPost("Login")]
             public async Task<IActionResult> Login([FromBody] LoginModel model)
             {
                 if (!ModelState.IsValid)
